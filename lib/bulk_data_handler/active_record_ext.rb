@@ -18,18 +18,21 @@ module BulkDataHandler::ActiveRecordExt
   end
 
   def mass_update!(objects, options = {})
-    mass_update(objects, options)
-    unless objects.all?( |obj| obj.errors.empty? }
-    objects
+    mass_persistence_with_exception { mass_update(objects, options) }
   end
 
   def mass_create!(objects, options = {})
-    mass_create(objects, options)
+    mass_persistence_with_exception { mass_create(objects, options) }
   end
 
   def mass_save!(objects, options = {})
-    mass_save(objects, options)
+    mass_persistence_with_exception { mass_save(objects, options) }
+  end
 
+  def mass_persistence_with_exception
+    objects = yield
+    raise ActiveRecord::RecordInvalid if objects.any? {|obj| obj.errors.present? }
+    objects
   end
 
 end
